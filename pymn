@@ -3,6 +3,7 @@ import argparse
 import topology
 import switch
 from sys import argv
+from functools import partial
 from mininet.node import CPULimitedHost
 from mininet.net import Mininet
 from mininet.log import setLogLevel, info
@@ -23,9 +24,14 @@ def run():
 
     parser.add_argument('-s', '--switch', nargs='?', const="OVSSwitch", type=str,
                         help='OVSSwitch, UserSwitch, OVSLegacyKernelSwitch (default: OVSSwitch)')
+    
+    parser.add_argument('-p', '--protocols', nargs='?', const="OpenFlow13", type=str,
+                        help='OpenFlow10, OpenFlow13 (default: OpenFlow13)')
+    
     a = parser.parse_args()
 
     # If no arguments passed, set the default values
+    if a.protocols == None: a.protocols = "OpenFlow13"
     if a.controller == None: a.controller = [ "127.0.0.1" ]
     if a.topo_arg == None: a.topo_arg = [ 1 ]
     if a.topo == None: a.topo = "SwitchTopo"
@@ -35,7 +41,7 @@ def run():
     cur_topo = getattr(topology, a.topo)(*a.topo_arg)
 
     # Get switch type
-    cur_switch = getattr(switch, a.switch)
+    cur_switch = partial(getattr(switch, a.switch), protocols=a.protocols)
 
     # Create mininet
     net = Mininet(topo=cur_topo, switch=cur_switch, controller=None)
