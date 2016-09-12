@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
-from sys import argv
 from functools import partial
 from mininet.node import CPULimitedHost, RemoteController
 from mininet.net import Mininet
@@ -10,24 +9,33 @@ import topology
 import switch
 
 def run():
-    # Parse arguments and store them
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--controller', action='append', type=str)
-    parser.add_argument('-a', '--topo-arg', action='append', type=int)
+    # Create argument parser
+    parser = ArgumentParser()
+    
+    # Add parser arguments
+    parser.add_argument('-c', '--controller',
+                        action='append', type=str)
 
-    parser.add_argument('-t', '--topo', nargs='?', const="SwitchTopo", type=str,
+    parser.add_argument('-a', '--topo-arg',
+                        action='append', type=int)
+
+    parser.add_argument('-t', '--topo',
+                        nargs='?', const="SwitchTopo", type=str,
                         help='LinearTopo, SwitchTopo, SingleSwitchTopo, SingleSwitchReversedTopo, TreeTopo (default: SwitchTopo)')
 
-    parser.add_argument('-s', '--switch', nargs='?', const="OVSSwitch", type=str,
+    parser.add_argument('-s', '--switch',
+                        nargs='?', const="OVSSwitch", type=str,
                         help='OVSSwitch, UserSwitch, OVSLegacyKernelSwitch (default: OVSSwitch)')
     
-    parser.add_argument('-p', '--protocols', nargs='?', const="OpenFlow13", type=str,
+    parser.add_argument('-p', '--protocols',
+                        nargs='?', const="OpenFlow13", type=str,
                         help='OpenFlow10, OpenFlow13 (default: OpenFlow13)')
     
+    # Parse arguments from command lin
     a = parser.parse_args()
 
     # If no arguments passed, set the default values
-    if a.protocols == None: a.protocols = "OpenFlow13"
+    if a.protocols == None:  a.protocols = "OpenFlow13"
     if a.controller == None: a.controller = [ "127.0.0.1" ]
     if a.topo_arg == None:   a.topo_arg = [ 1 ]
     if a.topo == None:       a.topo = "SwitchTopo"
