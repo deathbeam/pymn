@@ -1,21 +1,17 @@
 #!/usr/bin/env python
-import argparse
-import topology
-import switch
+from argparse import ArgumentParser
 from sys import argv
 from functools import partial
-from mininet.node import CPULimitedHost
+from mininet.node import CPULimitedHost, RemoteController
 from mininet.net import Mininet
 from mininet.log import setLogLevel, info
-from mininet.node import OVSSwitch, UserSwitch, OVSLegacyKernelSwitch, RemoteController
 from mininet.cli import CLI
+import topology
+import switch
 
 def run():
     # Parse arguments and store them
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--console', action='store_true')
-    # parser.add_argument('--start', action='store_true')
-    # parser.add_argument('--stop', action='store_true')
     parser.add_argument('-c', '--controller', action='append', type=str)
     parser.add_argument('-a', '--topo-arg', action='append', type=int)
 
@@ -33,9 +29,9 @@ def run():
     # If no arguments passed, set the default values
     if a.protocols == None: a.protocols = "OpenFlow13"
     if a.controller == None: a.controller = [ "127.0.0.1" ]
-    if a.topo_arg == None: a.topo_arg = [ 1 ]
-    if a.topo == None: a.topo = "SwitchTopo"
-    if a.switch == None: a.switch = "OVSSwitch"
+    if a.topo_arg == None:   a.topo_arg = [ 1 ]
+    if a.topo == None:       a.topo = "SwitchTopo"
+    if a.switch == None:     a.switch = "OVSSwitch"
 
     # Create topology
     cur_topo = getattr(topology, a.topo)(*a.topo_arg)
@@ -50,12 +46,9 @@ def run():
     for i, address in enumerate(a.controller):
         net.addController(RemoteController('c{0}'.format(i), address, 6653))
 
-    # Start/stop mininet
-    # if a.start:
+    # Start mininet, open CLI and then stop mininet
     net.start()
-    # if a.console:
     CLI(net)
-    # if a.stop:
     net.stop()
 
 if __name__ == '__main__':
