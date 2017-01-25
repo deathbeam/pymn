@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
 from functools import partial
+from time import sleep
+from mininet.clean import Cleanup
 from mininet.node import CPULimitedHost, RemoteController
 from mininet.net import Mininet
 from mininet.log import setLogLevel, info
@@ -9,63 +11,80 @@ import topology
 import switch
 
 def run():
-    # Create argument parser
-    parser = ArgumentParser()
+  # Create argument parser
+  parser = ArgumentParser()
 
-    # Add parser arguments
-    parser.add_argument('-c', '--controller',
-                        action='append', type=str)
+  # Add parser arguments
+  parser.add_argument('-c', '--controller',
+      action='append', type=str)
 
-    parser.add_argument('-a', '--topo-arg',
-                        action='append', type=int)
+  parser.add_argument('-a', '--topo-arg',
+      action='append', type=int)
 
-    parser.add_argument('-t', '--topo',
-                        nargs='?', const="SwitchTopo", type=str,
-                        help='LinearTopo, SwitchTopo, SingleSwitchTopo, SingleSwitchReversedTopo, TreeTopo (default: SwitchTopo)')
+  parser.add_argument('-t', '--topo',
+      nargs='?', const="SwitchTopo", type=str,
+      help='LinearTopo, SwitchTopo, SingleSwitchTopo, SingleSwitchReversedTopo, TreeTopo (default: SwitchTopo)')
 
-    parser.add_argument('-s', '--switch',
-                        nargs='?', const="OVSSwitch", type=str,
-                        help='OVSSwitch, UserSwitch, OVSLegacyKernelSwitch (default: OVSSwitch)')
+  parser.add_argument('-s', '--switch',
+      nargs='?', const="OVSSwitch", type=str,
+      help='OVSSwitch, UserSwitch, OVSLegacyKernelSwitch (default: OVSSwitch)')
 
-    parser.add_argument('-p', '--protocols',
-                        nargs='?', const="OpenFlow13", type=str,
-                        help='OpenFlow10, OpenFlow13 (default: OpenFlow13)')
+  parser.add_argument('-p', '--protocols',
+      nargs='?', const="OpenFlow13", type=str,
+      help='OpenFlow10, OpenFlow13 (default: OpenFlow13)')
 
 
-    parser.add_argument('--console', action='store_true')
-    parser.add_argument('--start', action='store_true')
-    parser.add_argument('--stop', action='store_true')
+  parser.add_argument('-e', '--pattern',
+      nargs='?', const='xscxx', type=str,
+      help='s = start, c = console, {sec}d = delay, x = stop (default: xscxx)')
 
-    # Parse arguments from command lin
-    a = parser.parse_args()
+  # Parse arguments from command lin
+  a = parser.parse_args()
 
-    print(a.console)
+  # If no arguments passed, set the default values
+  if a.protocols == None:  a.protocols = "OpenFlow13"
+  if a.controller == None: a.controller = [ "127.0.0.1" ]
+  if a.topo_arg == None:   a.topo_arg = [ 1 ]
+  if a.topo == None:       a.topo = "SwitchTopo"
+  if a.switch == None:     a.switch = "OVSSwitch"
+  if a.pattern == None:    a.pattern = "xscxx"
 
-    # If no arguments passed, set the default values
-    if a.protocols == None:  a.protocols = "OpenFlow13"
-    if a.controller == None: a.controller = [ "127.0.0.1" ]
-    if a.topo_arg == None:   a.topo_arg = [ 1 ]
-    if a.topo == None:       a.topo = "SwitchTopo"
-    if a.switch == None:     a.switch = "OVSSwitch"
+  # Create topology
+  cur_topo = getattr(topology, a.topo)(*a.topo_arg)
 
-    # Create topology
-    cur_topo = getattr(topology, a.topo)(*a.topo_arg)
+  # Get switch type
+  cur_switch = partial(getattr(switch, a.switch), protocols=a.protocols)
 
-    # Get switch type
-    cur_switch = partial(getattr(switch, a.switch), protocols=a.protocols)
+  # Create mininet
+  net = None
 
-    # Create mininet
-    net = Mininet(topo=cur_topo, switch=cur_switch, controller=None)
 
-    # Create and add controllers
-    for i, address in enumerate(a.controller):
+  # Execute pattern
+  delay = ""
+  for c in a.pattern:
+    if c == 's':
+      net = Mininet(switch=cur_switch, controller=None)
+      net.buildFromTopo(cur_topo)
+
+      # Create and add controllers
+      for i, address in enumerate(a.controller):
         net.addController(RemoteController('c{0}'.format(i), address, 6653))
 
-    # Start mininet, open CLI and then stop mininet
-    if a.start: net.start()
-    if a.console: CLI(net)
-    if a.stop: net.stop()
+      net.start()
+    elif c == 'c':
+      if net != None: CLI(net)
+    elif c == 'x':
+      if net != None:
+        net.stop()
+        net = None
+      else:
+        Cleanup.cleanup()
+    elif c.isdigit():
+      delay += c
+    elif c == 'd':
+      print("*** Waiting " + delay + " seconds")
+      sleep(float(delay))
 
 if __name__ == '__main__':
-    setLogLevel('info')
-    run()
+  setLogLevel('info')
+  run()
