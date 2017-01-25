@@ -11,7 +11,7 @@ import switch
 def run():
     # Create argument parser
     parser = ArgumentParser()
-    
+
     # Add parser arguments
     parser.add_argument('-c', '--controller',
                         action='append', type=str)
@@ -26,13 +26,20 @@ def run():
     parser.add_argument('-s', '--switch',
                         nargs='?', const="OVSSwitch", type=str,
                         help='OVSSwitch, UserSwitch, OVSLegacyKernelSwitch (default: OVSSwitch)')
-    
+
     parser.add_argument('-p', '--protocols',
                         nargs='?', const="OpenFlow13", type=str,
                         help='OpenFlow10, OpenFlow13 (default: OpenFlow13)')
-    
+
+
+    parser.add_argument('--console', action='store_true')
+    parser.add_argument('--start', action='store_true')
+    parser.add_argument('--stop', action='store_true')
+
     # Parse arguments from command lin
     a = parser.parse_args()
+
+    print(a.console)
 
     # If no arguments passed, set the default values
     if a.protocols == None:  a.protocols = "OpenFlow13"
@@ -55,9 +62,9 @@ def run():
         net.addController(RemoteController('c{0}'.format(i), address, 6653))
 
     # Start mininet, open CLI and then stop mininet
-    net.start()
-    CLI(net)
-    net.stop()
+    if a.start: net.start()
+    if a.console: CLI(net)
+    if a.stop: net.stop()
 
 if __name__ == '__main__':
     setLogLevel('info')
