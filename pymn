@@ -2,7 +2,8 @@
 from argparse import ArgumentParser
 from functools import partial
 from time import sleep
-from mininet.clean import Cleanup
+
+from mininet.clean import cleanup
 from mininet.node import CPULimitedHost, RemoteController
 from mininet.net import Mininet
 from mininet.log import setLogLevel, info
@@ -78,7 +79,7 @@ def run():
         net.stop()
         net = None
       else:
-        Cleanup.cleanup()
+        cleanup()
     elif c.isdigit():
       delay += c
     elif c == 'd':
