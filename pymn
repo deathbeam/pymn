@@ -64,6 +64,7 @@ def run():
   delay = ""
   for c in a.pattern:
     if c == 's':
+      # Create mininet object
       net = Mininet(switch=cur_switch, controller=None)
       net.buildFromTopo(cur_topo)
 
@@ -71,6 +72,7 @@ def run():
       for i, address in enumerate(a.controller):
         net.addController(RemoteController('c{0}'.format(i), address, 6653))
 
+      # Start connections to controllers
       net.start()
     elif c == 'c':
       if net != None: CLI(net)
@@ -83,8 +85,10 @@ def run():
     elif c.isdigit():
       delay += c
     elif c == 'd':
+      if delay == "": delay = "1"
       print("*** Waiting " + delay + " seconds")
       sleep(float(delay))
+      delay = ""
 
 if __name__ == '__main__':
   setLogLevel('info')
