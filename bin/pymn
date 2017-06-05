@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import pymn
+
+if __name__ == '__main__':
+  pymn.main()

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 from argparse import ArgumentParser
 from functools import partial
@@ -60,7 +61,7 @@ def runMininet(protocols, controller, topo, topo_arg, ovs_switch, pattern):
       sleep(float(delay))
       delay = ""
 
-if __name__ == '__main__':
+def main(argv=None):
   setLogLevel('info')
 
   # Create argument parser
@@ -91,6 +92,6 @@ if __name__ == '__main__':
       help='s = start, c = console, {sec}d = delay, x = stop (default: xscxx)')
 
   # Parse arguments from command lin
-  a = parser.parse_args()
+  a = parser.parse_args(argv)
 
   runMininet(a.protocols, a.controller, a.topo, a.topo_arg, a.switch, a.pattern)
